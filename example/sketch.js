@@ -2,7 +2,7 @@ let e;
 let promptText = "";
 
 function setup() {
-  createCanvas(400, 400);
+  createCanvas(windowWidth, windowHeight);
   // Create a triangle
   let vertices = [createVector(0, 0), createVector(50, 100), createVector(-50, 100), createVector(-50, 50)];
 
