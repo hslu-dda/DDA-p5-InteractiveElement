@@ -1,84 +1,137 @@
-let e;
-let promptText = "";
+let shapes = [];
+let infoText = "";
 
 function setup() {
-  createCanvas(windowWidth, windowHeight);
-  // Create a triangle
-  let vertices = [createVector(0, 0), createVector(50, 100), createVector(-50, 100), createVector(-50, 50)];
+  createCanvas(800, 500);
+  textAlign(CENTER, CENTER);
 
-  e = new InteractivePolygon(vertices, 0);
-  e.data = { form: "Polygon" };
+  // Create an interactive circle
+  circle = interactiveCircle(150, 150, 100, "myCircle")
+    .setColor(color(220, 220, 255))
+    .setHoverColor(color(180, 180, 255))
+    .setClickColor(color(100, 100, 255))
+    .setHoverCallback((isHovering, shape) => {
+      if (isHovering) infoText = "Hovering over Circle";
+      else if (infoText === "Hovering over Circle") infoText = "";
+    })
+    .setClickCallback((shape) => {
+      shape.toggleIsActive();
+      infoText = shape.isActive ? "Circle is active" : "Circle is inactive";
+    });
 
-  e.setHoverCallback((isHovering, instance) => {
-    console.log(`Polygon ${instance.id} is ${isHovering ? "being hovered" : "not being hovered"}`);
-  });
+  // Create an interactive ellipse
+  ellipse = interactiveEllipse(400, 150, 160, 80, "myEllipse")
+    .setColor(color(255, 220, 220))
+    .setHoverColor(color(255, 180, 180))
+    .setClickColor(color(255, 100, 100))
+    .setHoverCallback((isHovering, shape) => {
+      if (isHovering) infoText = "Hovering over Ellipse";
+      else if (infoText === "Hovering over Ellipse") infoText = "";
+    })
+    .setClickCallback((shape) => {
+      shape.toggleIsActive();
+      infoText = shape.isActive ? "Ellipse is active" : "Ellipse is inactive";
+    });
 
-  e.setClickCallback((instance) => {
-    console.log(`Polygon ${instance.id} was clicked!`);
-    promptText = instance.data.form;
+  // Create an interactive rectangle
+  rect = interactiveRect(600, 100, 120, 100, "myRect")
+    .setColor(color(220, 255, 220))
+    .setHoverColor(color(180, 255, 180))
+    .setClickColor(color(100, 255, 100))
+    .setHoverCallback((isHovering, shape) => {
+      if (isHovering) infoText = "Hovering over Rectangle";
+      else if (infoText === "Hovering over Rectangle") infoText = "";
+    })
+    .setClickCallback((shape) => {
+      shape.toggleIsActive();
+      infoText = shape.isActive ? "Rectangle is active" : "Rectangle is inactive";
+    });
 
-    e.toggleIsActive();
-  });
+  // Create an interactive polygon (hexagon)
+  let vertices = [];
+  let centerX = 300;
+  let centerY = 350;
+  let radius = 80;
 
-  vertices = [createVector(0, 0), createVector(50, 100), createVector(-50, 100)];
-  d = new CustomPolygon(vertices, 1);
-  d.data = { form: "Triangle" };
+  for (let i = 0; i < 6; i++) {
+    let angle = (TWO_PI / 6) * i - PI / 6;
+    let x = centerX + radius * cos(angle);
+    let y = centerY + radius * sin(angle);
+    vertices.push(createVector(x, y));
+  }
 
-  d.setClickCallback((instance) => {
-    console.log(`Polygon ${instance.id} was clicked! ${JSON.stringify(instance.data)}`);
-    d.toggleIsActive();
-    promptText = instance.data.form;
-  });
+  polygon = interactivePolygon(vertices, "myHexagon")
+    .setColor(color(255, 240, 200))
+    .setHoverColor(color(255, 220, 150))
+    .setClickColor(color(255, 180, 100))
+    .setHoverCallback((isHovering, shape) => {
+      if (isHovering) infoText = "Hovering over Hexagon";
+      else if (infoText === "Hovering over Hexagon") infoText = "";
+    })
+    .setClickCallback((shape) => {
+      shape.toggleIsActive();
+      infoText = shape.isActive ? "Hexagon is active" : "Hexagon is inactive";
+    });
+
+  // Create an interactive star polygon
+  let starVertices = [];
+  centerX = 600;
+  centerY = 350;
+  let outerRadius = 80;
+  let innerRadius = 40;
+
+  for (let i = 0; i < 10; i++) {
+    let angle = (TWO_PI / 10) * i - PI / 2;
+    let radius = i % 2 === 0 ? outerRadius : innerRadius;
+    let x = centerX + radius * cos(angle);
+    let y = centerY + radius * sin(angle);
+    starVertices.push(createVector(x, y));
+  }
+
+  star = interactivePolygon(starVertices, "myStar")
+    .setColor(color(255, 220, 255))
+    .setHoverColor(color(255, 180, 255))
+    .setClickColor(color(255, 100, 255))
+    .setHoverCallback((isHovering, shape) => {
+      if (isHovering) infoText = "Hovering over Star";
+      else if (infoText === "Hovering over Star") infoText = "";
+    })
+    .setClickCallback((shape) => {
+      shape.toggleIsActive();
+      infoText = shape.isActive ? "Star is active" : "Star is inactive";
+    });
+
+  // Add all shapes to the array
+  shapes = [circle, ellipse, rect, polygon, star];
 }
 
 function draw() {
-  background(220);
-  push();
-  translate(width / 2, height / 2);
-  rotate(frameCount * 0.02);
-  e.update();
-  e.draw();
-  pop();
+  background(240);
 
-  push();
-  translate(width / 2, height / 2);
-  d.update();
-  d.draw();
-  pop();
-
-  text(promptText, 20, 20);
-}
-
-class CustomPolygon extends p5.prototype.InteractivePolygon {
-  constructor(vertices, id) {
-    super(vertices, id);
-    this.color = color(random(255), random(255), random(255));
+  // Update and draw all shapes
+  for (let shape of shapes) {
+    shape.update().draw();
   }
 
-  draw() {
-    push(); // Save the current drawing state
+  // Draw labels
+  fill(0);
+  noStroke();
 
-    stroke(0);
-    strokeWeight(2);
-    if (this.hover) {
-      fill(255, 0, 0);
-    } else {
-      fill(this.color);
-    }
-    this.isActive ? strokeWeight(5) : strokeWeight(1);
-    beginShape();
-    for (let vert of this.vertices) {
-      vertex(vert.x, vert.y);
-    }
-    endShape(CLOSE);
+  text("Circle", 150, 220);
+  text("Ellipse", 400, 220);
+  text("Rectangle", 600, 220);
+  text("Hexagon", 300, 450);
+  text("Star", 600, 450);
 
-    // Add a label
-    noStroke();
-    fill(255, 0, 0);
+  // Draw info text
+  if (infoText) {
+    fill(0, 102, 153);
     textSize(16);
-    textAlign(CENTER, CENTER);
-    text(this.id, this.vertices[0].x, this.vertices[0].y);
-
-    pop(); // Restore the previous drawing state
+    text(infoText, width / 2, 30);
+    textSize(12);
   }
+
+  // Draw instructions
+  fill(100);
+  text("Click on shapes to toggle active state (red outline)", width / 2, height - 20);
 }
