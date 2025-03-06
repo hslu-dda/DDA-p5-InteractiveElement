@@ -1,134 +1,259 @@
-# Interactive Polygon Library for p5.js
+# Interactive Shapes Library for p5.js
 
-This library extends p5.js to create interactive polygon elements with hover and click functionality.
+This library extends p5.js to create interactive shape elements with hover and click functionality. It supports circles, ellipses, rectangles, and arbitrary polygons.
 
 ## Dependencies
 
 - p5.js
-- p5easing library
 
 ## Installation
 
 1. Include the p5.js library in your project.
-2. Include the p5easing library. You can download it from [GitHub](https://github.com/hslu-dda/p5easing).
-   - Download the `p5.easing.js` file from the repository.
-   - Include it in your project directory.
-   - Add it to your HTML file:
-     ```html
-     <script src="path/to/p5.js"></script>
-     <script src="path/to/p5.easing.js"></script>
-     ```
-3. Include the `dda-interactiveElement.js` file in your p5.js project.
-4. Make sure to load these libraries in the correct order: p5.js, then p5easing, then dda-interactiveElement.js, and finally your main sketch file.
+2. Include the `dda-interactiveElement.js` file in your p5.js project.
+3. Make sure to load these libraries in the correct order: p5.js first, then dda-interactiveElement.js, and finally your main sketch file.
 
-## Creating an Interactive Polygon
+```html
+<script src="path/to/p5.js"></script>
+<script src="path/to/dda-interactiveElement.js"></script>
+<script src="path/to/sketch.js"></script>
+```
+
+## Available Shape Types
+
+The library provides several factory functions to create different interactive shapes:
+
+- `interactiveCircle(x, y, diameter, id)` - Creates a circle
+- `interactiveEllipse(x, y, width, height, id)` - Creates an ellipse
+- `interactiveRect(x, y, width, height, id)` - Creates a rectangle
+- `interactivePolygon(vertices, id)` - Creates a polygon with arbitrary vertices
+
+## Basic Usage
 
 ```javascript
-let polygon;
+let circle;
 
 function setup() {
   createCanvas(400, 400);
 
-  // Define vertices for your polygon
-  let vertices = [createVector(50, 50), createVector(150, 50), createVector(100, 150)];
-
-  // Create a new InteractivePolygon
-  polygon = new InteractivePolygon(vertices, "myPolygon");
+  // Create an interactive circle
+  circle = interactiveCircle(200, 200, 100, "myCircle")
+    .setColor(color(220, 220, 255))
+    .setHoverColor(color(180, 180, 255))
+    .setClickColor(color(100, 100, 255))
+    .setHoverCallback((isHovering, shape) => {
+      console.log(isHovering ? "Hovering over circle" : "Not hovering");
+    })
+    .setClickCallback((shape) => {
+      shape.toggleIsActive();
+      console.log(shape.isActive ? "Circle is active" : "Circle is inactive");
+    });
 }
 
 function draw() {
   background(220);
 
-  // Update and draw the polygon
-  polygon.update();
-  polygon.draw();
+  // Update and draw the circle
+  circle.update().draw();
 }
 ```
 
 ## Setting Callbacks
 
+All shapes support hover and click callbacks:
+
 ```javascript
 // Set hover callback
-polygon.setHoverCallback((isHovering, polygon) => {
+shape.setHoverCallback((isHovering, shape) => {
   console.log(isHovering ? "Hovering!" : "Not hovering");
 });
 
 // Set click callback
-polygon.setClickCallback((polygon) => {
+shape.setClickCallback((shape) => {
   console.log("Clicked!");
-  polygon.toggleIsActive();
+  shape.toggleIsActive();
 });
 ```
 
-## Customization
+## Color Customization
 
-- Change colors: `polygon.color`, `polygon.hoverColor`, `polygon.clickColor`, `polygon.activeColor`
-- Adjust blend duration: `polygon.blendDuration`
-
-## Extending the InteractivePolygon Class
-
-You can create custom polygon classes by extending `InteractivePolygon`. Here's an example:
+You can customize the appearance of your shapes:
 
 ```javascript
-class CustomPolygon extends p5.prototype.InteractivePolygon {
-  constructor(vertices, id) {
-    super(vertices, id);
-    this.color = color(random(255), random(255), random(255));
-  }
+shape.setColor(color(255, 255, 255)); // Default color
+shape.setHoverColor(color(0, 200, 0)); // Color when hovering
+shape.setClickColor(color(100, 100, 255)); // Color when clicked
+shape.setActiveColor(color(100, 200, 100)); // Color when active
+```
 
-  draw() {
-    push();
-    stroke(0);
-    strokeWeight(2);
-    if (this.hover) {
-      fill(255, 0, 0);
-    } else {
-      fill(this.color);
-    }
-    this.isActive ? strokeWeight(5) : strokeWeight(1);
-    beginShape();
-    for (let vert of this.vertices) {
-      vertex(vert.x, vert.y);
-    }
-    endShape(CLOSE);
+## Creating a Polygon
 
-    // Add a label
-    noStroke();
-    fill(255, 0, 0);
-    textSize(16);
-    textAlign(CENTER, CENTER);
-    text(this.id, this.vertices[0].x, this.vertices[0].y);
-    pop();
-  }
+```javascript
+// Create a hexagon
+let vertices = [];
+let centerX = 200;
+let centerY = 200;
+let radius = 80;
+
+for (let i = 0; i < 6; i++) {
+  let angle = (TWO_PI / 6) * i;
+  let x = centerX + radius * cos(angle);
+  let y = centerY + radius * sin(angle);
+  vertices.push(createVector(x, y));
 }
 
-// Usage
-let customPolygon;
+let hexagon = interactivePolygon(vertices, "myHexagon")
+  .setColor(color(255, 240, 200))
+  .setHoverCallback((isHovering, shape) => {
+    console.log(isHovering ? "Hovering over hexagon" : "Not hovering");
+  });
+```
+
+## Working with Multiple Shapes
+
+You can manage multiple shapes using an array:
+
+```javascript
+let shapes = [];
 
 function setup() {
   createCanvas(400, 400);
-  let vertices = [createVector(0, 0), createVector(50, 100), createVector(-50, 100)];
-  customPolygon = new CustomPolygon(vertices, "customPoly");
+
+  // Create various shapes
+  let circle = interactiveCircle(100, 100, 50, "circle1");
+  let rect = interactiveRect(200, 200, 80, 60, "rect1");
+
+  // Add shapes to array
+  shapes = [circle, rect];
 }
 
 function draw() {
   background(220);
-  customPolygon.update();
-  customPolygon.draw();
+
+  // Update and draw all shapes
+  for (let shape of shapes) {
+    shape.update().draw();
+  }
+}
+```
+
+## Interactive State
+
+All shapes have an active state that can be toggled:
+
+```javascript
+// Set active state
+shape.setIsActive(true);
+
+// Toggle active state
+shape.toggleIsActive();
+
+// Check active state
+if (shape.isActive) {
+  // Do something with active shapes
 }
 ```
 
 ## Features
 
 - Smooth color transitions on hover and click
-- Active state toggling
+- Active state toggling with visual feedback
 - Works with transformed canvases
-- Extensible for custom behavior
-- Utilizes p5.easing for smoother animations (optional)
+- Method chaining for concise code
+- Automatic hover and click detection
+- Support for various shape types (circles, ellipses, rectangles, polygons)
+
+## Extending with Custom Classes
+
+You can create custom shape classes by extending the base classes. Here's an example of creating a custom polygon class:
+
+```javascript
+// Extend the InteractivePolygon class to create a custom polygon
+class CustomPolygon extends p5.prototype.InteractivePolygon {
+  constructor(p5Instance, vertices, id) {
+    super(p5Instance, vertices, id);
+
+    // Custom default properties
+    this.color = color(255, 215, 0); // Gold
+    this.hoverColor = color(255, 165, 0); // Orange
+    this.clickColor = color(255, 69, 0); // Red-Orange
+    this.activeColor = color(218, 165, 32); // Golden Rod
+
+    // Custom blend duration for smoother/faster transitions
+    this.blendDuration = 5;
+  }
+
+  // Override the drawShape method for custom rendering
+  drawShape() {
+    // Custom drawing code
+    this._p5.push();
+
+    // Draw the basic polygon shape
+    this._p5.beginShape();
+    for (let vert of this.vertices) {
+      this._p5.vertex(vert.x, vert.y);
+    }
+    this._p5.endShape(this._p5.CLOSE);
+
+    // Draw a custom center point
+    this._p5.noStroke();
+    this._p5.fill(0);
+    let centerX = 0,
+      centerY = 0;
+    for (let vert of this.vertices) {
+      centerX += vert.x;
+      centerY += vert.y;
+    }
+    centerX /= this.vertices.length;
+    centerY /= this.vertices.length;
+    this._p5.ellipse(centerX, centerY, 10);
+
+    this._p5.pop();
+  }
+
+  // Add custom methods
+  pulse() {
+    // Custom animation or behavior
+    this.toggleIsActive();
+    setTimeout(() => this.toggleIsActive(), 500);
+  }
+}
+
+// Usage example
+function setup() {
+  createCanvas(400, 400);
+
+  // Create vertices for a triangle
+  let vertices = [createVector(200, 100), createVector(300, 300), createVector(100, 300)];
+
+  // Create a custom polygon instance
+  customTriangle = new CustomPolygon(this, vertices, "customTri");
+
+  // Set custom click behavior
+  customTriangle.setClickCallback((shape) => {
+    shape.pulse();
+    console.log("Custom click action!");
+  });
+}
+
+function draw() {
+  background(220);
+  customTriangle.update().draw();
+}
+```
+
+By extending the base classes, you can:
+
+1. Create shapes with custom default properties
+2. Implement custom rendering logic
+3. Add new methods and behaviors
+4. Override existing methods to change functionality
+5. Create specialized interactive elements for specific use cases
 
 ## Notes
 
 - The library automatically handles canvas transformations and pixel density.
-- Make sure to call `update()` before `draw()` in your main draw loop.
-- When extending the class, you can override methods like `draw()` for custom rendering.
-- You can add custom properties and methods to your extended classes.
+- Make sure to call `update()` before `draw()` in your draw loop.
+- Shapes use their own color system with blending between states.
+- All shape constructors return instances that can be chained with setter methods.
+- Active shapes are displayed with a red stroke by default.
+- When extending classes, remember to pass the p5 instance to the parent constructor.
