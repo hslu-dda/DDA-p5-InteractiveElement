@@ -45,7 +45,7 @@ function setup() {
     })
     .setClickCallback((shape) => {
       shape.toggleIsActive();
-      console.log(shape.isActive ? "Circle is active" : "Circle is inactive");
+      console.log(shape.getIsActive() ? "Circle is active" : "Circle is inactive");
     });
 }
 
@@ -136,6 +136,33 @@ function draw() {
 }
 ```
 
+## Working with Transformations
+
+The library automatically handles p5.js transformations like `translate()`, `rotate()`, and `scale()`:
+
+```javascript
+let button;
+
+function setup() {
+  createCanvas(400, 400);
+  button = interactiveRect(0, 0, 80, 30, "transformButton")
+    .setClickCallback(() => console.log("Clicked transformed button!"));
+}
+
+function draw() {
+  background(220);
+  
+  // Button works correctly even with transforms
+  push();
+  translate(200, 200);
+  rotate(frameCount * 0.01);
+  scale(1.5);
+  
+  button.update().draw();
+  pop();
+}
+```
+
 ## Interactive State
 
 All shapes have an active state that can be toggled:
@@ -148,19 +175,33 @@ shape.setIsActive(true);
 shape.toggleIsActive();
 
 // Check active state
-if (shape.isActive) {
+if (shape.getIsActive()) {
   // Do something with active shapes
 }
 ```
 
 ## Features
 
-- Smooth color transitions on hover and click
-- Active state toggling with visual feedback
-- Works with transformed canvases
-- Method chaining for concise code
-- Automatic hover and click detection
-- Support for various shape types (circles, ellipses, rectangles, polygons)
+- **High Performance**: Optimized for many interactive elements with smart culling and caching
+- **Transform Aware**: Automatically detects and handles canvas transformations (`push()`, `translate()`, `rotate()`, `scale()`)
+- **Smooth Animations**: Built-in color transitions on hover and click
+- **Active State Management**: Visual feedback with toggle functionality
+- **Method Chaining**: Fluent API for concise code
+- **Multiple Shape Support**: Circles, ellipses, rectangles, and custom polygons
+- **Automatic Hit Detection**: Efficient mouse interaction handling
+
+## Performance Notes
+
+The library includes several optimizations:
+
+- **Smart Culling**: Shapes outside the mouse range skip expensive hit detection
+- **Cached Calculations**: Mouse position and color calculations are cached to avoid redundant work
+- **Transform Detection**: Automatically switches between fast and accurate modes based on active transformations
+- **Efficient Updates**: Only recalculates when needed, not every frame
+
+For best performance:
+- Create shapes once in `setup()`, not repeatedly in `draw()`
+- If you manually change shape positions, call `shape.invalidateBounds()` to update hit detection
 
 ## Extending with Custom Classes
 
@@ -257,3 +298,5 @@ By extending the base classes, you can:
 - All shape constructors return instances that can be chained with setter methods.
 - Active shapes are displayed with a red stroke by default.
 - When extending classes, remember to pass the p5 instance to the parent constructor.
+- Use `getIsActive()` instead of directly accessing the `isActive` property for better encapsulation.
+- If you manually change shape positions or sizes, call `invalidateBounds()` to ensure proper hit detection.
